@@ -1,11 +1,23 @@
-(defun c:floor-heating ()
+(defun c:init-getpoints ()
     (JK:getpoints "\nSpecify first point: " "\nSpecify next point <done>: ")
 )
+	
 
 ;; Get Points  -  Josip Krtolačić
 ;; Returns a list of UCS points selected by the user
 
 (defun JK:getpoints ( msg0 msgN / rtn tmp )
+    (and (setq tmp (LM:catchapply 'getpoint (list msg0)))
+         (setq rtn (list tmp))
+         (while (setq tmp (LM:catchapply 'getpoint (list msgN (car rtn))))
+             (mapcar
+                '(lambda ( a b ) (grdraw a b 3 1))
+                 (setq rtn (cons tmp rtn))
+                 (cdr rtn)
+             )
+         )
+    )
+    (redraw) (reverse rtn)
 
 
 
@@ -21,7 +33,8 @@
 	
 
 ;; Center Of Mass  -  Josip Krtolačić
-;; Returns cenert of mass for a given list of points.
+;; Returns center of mass for a given list of points.
+;; Lousy variable, centroid of a polyhedra will be used.
 
 (defun JK:center-of-mass (points)
 	(list
@@ -29,3 +42,56 @@
 		(/ (apply + (mapcar '(lambda (ls) (cadr ls)) points)) (float (length points)))
 	)
 )
+
+
+;; Center Of Mass  -  Josip Krtolačić
+;; Returns centroid of a polyhedra for a given list of points.
+
+(defun polygon-area (vertices)
+  (setq n (length vertices))
+  (setq area 0.0)
+  (setq i 0)
+  (while (< i n)
+    (setq j (mod (+ i 1) n))
+    (setq xi (car (nth i vertices)))
+    (setq yi (cadr (nth i vertices)))
+    (setq xj (car (nth j vertices)))
+    (setq yj (cadr (nth j vertices)))
+    (setq area (+ area (* xi yj)))
+    (setq area (- area (* yi xj)))
+    (setq i (+ i 1))
+  )
+  (/ (abs area) 2.0)
+)
+
+;; Polygon centroid  -  Josip Krtolačić
+;; Returns centroid of a polyhedra for a given list of points.
+;; BUG: Always returns (0.0 0.0)
+
+(defun polygon-centroid (vertices)
+  (setq n (length vertices))
+  (setq Cx 1.0)
+  (setq Cy 1.0)
+  (setq i 0)
+  (setq A (polygon-area vertices))
+  (if (/= A 0.0)  ; Check to prevent division by zero
+    (progn
+      (while (< i n)
+        (setq j (mod (+ i 1) n))
+        (setq xi (car (nth i vertices)))
+        (setq yi (cadr (nth i vertices)))
+        (setq xj (car (nth j vertices)))
+        (setq yj (cadr (nth j vertices)))
+        (setq common-factor (- (* xi yj) (* xj yi)))
+        (setq Cx (+ Cx (* (+ xi xj) common-factor)))
+        (setq Cy (+ Cy (* (+ yi yj) common-factor)))
+        (setq i (+ i 1))
+      )
+      (setq Cx (/ Cx (* 6 A)))
+      (setq Cy (/ Cy (* 6 A)))
+    )
+  )
+  (list Cx Cy)
+)
+
+
