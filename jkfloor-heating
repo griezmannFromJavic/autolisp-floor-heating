@@ -1,0 +1,31 @@
+(defun c:floor-heating ()
+    (JK:getpoints "\nSpecify first point: " "\nSpecify next point <done>: ")
+)
+
+;; Get Points  -  Josip Krtolačić
+;; Returns a list of UCS points selected by the user
+
+(defun JK:getpoints ( msg0 msgN / rtn tmp )
+
+
+
+
+;; Catch Apply  -  Josip Krtolačić
+;; Applies a function to a list of parameters and catches any exceptions.
+ 
+(defun JK:catchapply ( fnc prm / rtn )
+    (if (not (vl-catch-all-error-p (setq rtn (vl-catch-all-apply fnc prm))))
+        rtn
+    )
+)
+	
+
+;; Center Of Mass  -  Josip Krtolačić
+;; Returns cenert of mass for a given list of points.
+
+(defun JK:center-of-mass (points)
+	(list
+		(/ (apply + (mapcar '(lambda (ls) (car ls)) points)) (float (length points)))
+		(/ (apply + (mapcar '(lambda (ls) (cadr ls)) points)) (float (length points)))
+	)
+)
