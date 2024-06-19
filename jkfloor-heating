@@ -1,3 +1,5 @@
+;gnu clisp  2.49.60
+
 (defun c:init-getpoints ()
     (JK:getpoints "\nSpecify first point: " "\nSpecify next point <done>: ")
 )
@@ -36,7 +38,7 @@
 ;; Returns center of mass for a given list of points.
 ;; Lousy variable, centroid of a polyhedra will be used.
 
-(defun JK:center-of-mass (points)
+(defun JK:point-centroid (points)
 	(list
 		(/ (apply + (mapcar '(lambda (ls) (car ls)) points)) (float (length points)))
 		(/ (apply + (mapcar '(lambda (ls) (cadr ls)) points)) (float (length points)))
@@ -48,18 +50,18 @@
 ;; Returns centroid of a polyhedra for a given list of points.
 
 (defun polygon-area (vertices)
-  (setq n (length vertices))
-  (setq area 0.0)
-  (setq i 0)
-  (while (< i n)
-    (setq j (mod (+ i 1) n))
-    (setq xi (car (nth i vertices)))
-    (setq yi (cadr (nth i vertices)))
-    (setq xj (car (nth j vertices)))
-    (setq yj (cadr (nth j vertices)))
-    (setq area (+ area (* xi yj)))
-    (setq area (- area (* yi xj)))
-    (setq i (+ i 1))
+      (setq n (length vertices))
+      (setq area 0.0)
+      (setq i 0)
+      (while (< i n)
+            (setq j (mod (+ i 1) n))
+            (setq xi (car (nth i vertices)))
+            (setq yi (cadr (nth i vertices)))
+            (setq xj (car (nth j vertices)))
+            (setq yj (cadr (nth j vertices)))
+            (setq area (+ area (* xi yj)))
+            (setq area (- area (* yi xj)))
+            (setq i (+ i 1))
   )
   (/ (abs area) 2.0)
 )
@@ -68,30 +70,26 @@
 ;; Returns centroid of a polyhedra for a given list of points.
 ;; BUG: Always returns (0.0 0.0)
 
-(defun polygon-centroid (vertices)
-  (setq n (length vertices))
-  (setq Cx 1.0)
-  (setq Cy 1.0)
-  (setq i 0)
-  (setq A (polygon-area vertices))
-  (if (/= A 0.0)  ; Check to prevent division by zero
-    (progn
-      (while (< i n)
-        (setq j (mod (+ i 1) n))
-        (setq xi (car (nth i vertices)))
-        (setq yi (cadr (nth i vertices)))
-        (setq xj (car (nth j vertices)))
-        (setq yj (cadr (nth j vertices)))
-        (setq common-factor (- (* xi yj) (* xj yi)))
-        (setq Cx (+ Cx (* (+ xi xj) common-factor)))
-        (setq Cy (+ Cy (* (+ yi yj) common-factor)))
-        (setq i (+ i 1))
-      )
-      (setq Cx (/ Cx (* 6 A)))
-      (setq Cy (/ Cy (* 6 A)))
-    )
-  )
-  (list Cx Cy)
-)
-
-
+(defun polygon-centroid
+       (vertices)
+       (setq n (length vertices))
+       (setq Cx 1.)
+       (setq Cy 1.)
+       (setq i 0)
+       (setq A (polygon-area vertices))
+       (if (/= A 0.)
+           (progn (while (< i n)
+                         (setq j (mod (+ i 1) n))
+                         (setq xi (car (nth i vertices)))
+                         (setq yi (cadr (nth i vertices)))
+                         (setq xj (car (nth j vertices)))
+                         (setq yj (cadr (nth j vertices)))
+                         (setq common-factor
+                               (- (* xi yj)
+                                  (* xj yi)))
+                         (setq Cx (+ Cx (* (+ xi xj) common-factor)))
+                         (setq Cy (+ Cy  (* (+ yi yj) common-factor)))
+                         (setq i (+ i 1)))
+                  (setq Cx (/ Cx (* 6 A)))
+                  (setq Cy (/ Cy (* 6 A)))))
+       (list Cx Cy))
