@@ -26,18 +26,36 @@
   intersection
 )
 
-; Example usage:
-(defun c:TestIntersection ()
-  (setq point1 (list 0.0 0.0))
-  (setq vector1 (list 1.0 1.0))
-  (setq point2 (list 0.0 1.0))
-  (setq vector2 (list 1.0 -1.0))
-
-  (setq intersection (intersect-lines point1 vector1 point2 vector2))
-  
-  (if intersection
-    (princ (strcat "\nIntersection Point: " (vl-princ-to-string intersection)))
-    (princ "\nLines are parallel and do not intersect.")
+(defun normalized-normal (vector / normal magnitude normalized-normal)
+  ; Given vector (x, y), the normal vector using right-hand rule is (y, -x)
+  (setq normal (list (cadr vector) (- (car vector))))
+  (setq magnitude (sqrt (+ (* (car normal) (car normal)) (* (cadr normal) (cadr normal)))))
+  (if (/= magnitude 0)
+    (setq normalized-normal (list (/ (car normal) magnitude) (/ (cadr normal) magnitude)))
+    (setq normalized-normal nil) ; Handle the zero vector case
   )
-  (princ)
+  normalized-normal
 )
+
+(defun line-center (A B)
+	(mapcar (lambda (x y) (/ (+ x y) 2.0)) A B)
+		)
+
+(defun line-vector (A B)
+	(mapcar - B A)
+)
+
+(defun offseted-line-center (A B offset)
+	(mapcar +
+		(line-center A B)
+		(mapcar (lambda (x) (* offset x)) (normalized-normal (line-vector B A)))
+		))
+
+(defun offseted-intersection (A B C offset)
+; intersection of offseted lines AB and BC
+	(intersect-lines
+		(offseted-line-center A B offset)
+		(line-vector A B)
+		(offseted-line-center B C offset)
+		(line-vector B C)
+		))
